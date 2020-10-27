@@ -9,9 +9,9 @@ from kivy.properties import (
 from kivy.uix.widget import Widget
 from kivy.vector import Vector
 
-STEP_SIZE = 15
-WINDOW_HEIGHT = 800
-WINDOW_WIDTH = 800
+STEP_SIZE = 20
+WINDOW_HEIGHT = 600
+WINDOW_WIDTH = 600
 
 
 def random_pos_on_grid():
@@ -42,17 +42,26 @@ class Body(Widget):
         """
         Check if the snake cell touch a wall
         """
-        if (self.y + STEP_SIZE > WINDOW_HEIGHT) or (self.y < 0):
-            self.y = abs(abs(self.y) - WINDOW_HEIGHT)
+        if (self.y < 0) or (self.y + STEP_SIZE > WINDOW_HEIGHT):
+            self.y = (int(WINDOW_HEIGHT / STEP_SIZE) * STEP_SIZE) - STEP_SIZE if (self.y < 0) else 0
         if (self.x < 0) or (self.x + STEP_SIZE > WINDOW_WIDTH):
-            self.x = abs(abs(self.x) - WINDOW_WIDTH)
+            self.x = (int(WINDOW_WIDTH / STEP_SIZE) * STEP_SIZE) - STEP_SIZE if (self.x < 0) else 0
 
 
 class Fruit(Widget):
     """
     the fruit
     """
-    pass
+    x = NumericProperty(0)
+    y = NumericProperty(0)
+    pos = ReferenceListProperty(x, y)
+
+    def spawn(self):
+        """
+        Spawn a fruit on the map
+        """
+        self.pos = random_pos_on_grid()
+
 
 class SnakeGame(Widget):
     """
@@ -77,13 +86,7 @@ class SnakeGame(Widget):
         self.snake.pos = random_pos_on_grid()
         self.snake.velocity = vel
         self.fruit.size = (STEP_SIZE, STEP_SIZE)
-        self.spawn_fruit()
-
-    def spawn_fruit(self):
-        """
-        Spawn a fruit on the map
-        """
-        self.fruit.pos = random_pos_on_grid()
+        self.fruit.spawn()
 
     def _is_fruit_touched(self):
         """
@@ -97,7 +100,7 @@ class SnakeGame(Widget):
         """
         if self._is_fruit_touched():
             self.score += 1
-            self.spawn_fruit()
+            self.fruit.spawn()
             print(self.score)
 
     def update(self, dt):

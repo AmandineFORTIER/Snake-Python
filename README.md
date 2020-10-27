@@ -1,7 +1,9 @@
 # Snake
+[![license](https://img.shields.io/github/license/AmandineFORTIER/Snake-Python)](https://github.com/AmandineFORTIER/Snake-Python/blob/main/LICENSE)
 
 ## Description
 A basic snake game. I made it to use Kivy.
+
 
 Screenshots will follow
 
