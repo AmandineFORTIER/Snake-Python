@@ -23,3 +23,7 @@ With the IDE or :
 `python3 main.py`
 
 Don't forget to install the framework: `https://kivy.org/doc/stable/gettingstarted/installation.html`
+
+## Credits
+Apple icon <img src="./images/apple.svg" alt="apple icon" width="20%"> made by Vectors Market from flaticon
+
