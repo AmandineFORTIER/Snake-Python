@@ -25,5 +25,5 @@ With the IDE or :
 Don't forget to install the framework: `https://kivy.org/doc/stable/gettingstarted/installation.html`
 
 ## Credits
-Apple icon <img src="./images/apple.svg" alt="apple icon" width="5%"> made by Vectors Market from flaticon
+Apple icon <img src="./images/apple.svg" alt="apple icon" width="3%"> made by Vectors Market from flaticon
 
