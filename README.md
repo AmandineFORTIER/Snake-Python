@@ -7,7 +7,7 @@ A basic snake game. I made it to use Kivy.
 
 Screenshots will follow
 
-## IDE, language and framework
+## IDE, language and libraries
 
 ### IDE
 PyCharm 2020.2.3 (Community Edition)
@@ -15,7 +15,7 @@ PyCharm 2020.2.3 (Community Edition)
 ### Language
 Python 3.8.6
 
-### Framework
+### Library
 Kivy 1.11.1
 
 ## Run the program
@@ -25,5 +25,5 @@ With the IDE or :
 Don't forget to install the framework: `https://kivy.org/doc/stable/gettingstarted/installation.html`
 
 ## Credits
-Apple icon <img src="./images/apple.svg" alt="apple icon" width="3%"> made by Vectors Market from flaticon
+Apple icon <img src="./images/apple.png" alt="apple icon" width="3%"> made by Vectors Market from flaticon
 
