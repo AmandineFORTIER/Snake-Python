@@ -23,7 +23,13 @@ def random_pos_on_grid():
         randint(0, (int((WINDOW_HEIGHT - STEP_SIZE) / STEP_SIZE))) * STEP_SIZE]
 
 
-class Body(Widget):
+class SnakeTail(Widget):
+
+    def move(self, new_pos):
+        self.pos = new_pos
+
+
+class SnakeHead(Widget):
     """
     A cell of the snake body
     """
@@ -67,32 +73,47 @@ class SnakeGame(Widget):
     """
     The snake game
     """
-    snake = ObjectProperty(None)
+    snake_head = ObjectProperty(None)
     fruit = ObjectProperty(None)
     score = NumericProperty(0)
+    player_size = NumericProperty(STEP_SIZE)
 
     def __init__(self, **kwargs):
         super(SnakeGame, self).__init__(**kwargs)
         Window.size = (WINDOW_WIDTH, WINDOW_HEIGHT)
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
+        self.tail = []
 
     def start(self, vel=(STEP_SIZE, 0)):
         """
         Start the game.
         :param vel: default velocity
         """
-        self.snake.size = (STEP_SIZE, STEP_SIZE)
-        self.snake.pos = random_pos_on_grid()
-        self.snake.velocity = vel
-        self.fruit.size = (STEP_SIZE, STEP_SIZE)
+        self.snake_head.pos = random_pos_on_grid()
+        self.snake_head.velocity = vel
+        self.tail.append(
+            SnakeTail(
+                pos=(self.snake_head.pos[0] - STEP_SIZE, self.snake_head.pos[1]),
+                size=self.snake_head.size
+            )
+        )
+        self.add_widget(self.tail[-1])
+
+        self.tail.append(
+            SnakeTail(
+                pos=(self.snake_head.pos[0] - 2 * STEP_SIZE, self.snake_head.pos[1]),
+                size=self.snake_head.size
+            )
+        )
+        self.add_widget(self.tail[-1])
         self.fruit.spawn()
 
     def _is_fruit_touched(self):
         """
         :return: true if the snake touch the fruit
         """
-        return self.snake.x == self.fruit.x and self.snake.y == self.fruit.y
+        return self.snake_head.x == self.fruit.x and self.snake_head.y == self.fruit.y
 
     def on_touch_fruit(self):
         """
@@ -101,51 +122,60 @@ class SnakeGame(Widget):
         if self._is_fruit_touched():
             self.score += 1
             self.fruit.spawn()
-            print(self.score)
+            self.tail.append(
+                SnakeTail(
+                    pos=(self.snake_head.pos[0] - len(self.tail) * STEP_SIZE, self.snake_head.pos[1]),
+                    size=self.snake_head.size
+                )
+            )
+            self.add_widget(self.tail[-1])
 
     def update(self, dt):
         """
         Move the snake and check if it touch the fruit
         """
-        self.snake.move()
+        for i in range(1, len(self.tail)):
+            self.tail[-i].move(new_pos=(self.tail[-(i + 1)].pos))
+        self.tail[0].move(new_pos=self.snake_head.pos)
+        self.snake_head.move()
         self.on_touch_fruit()
 
     def _going_down(self):
         """
         Check if the snake is going down
         """
-        return self.snake.velocity_x == 0 and self.snake.velocity_y == -STEP_SIZE
+        return self.snake_head.velocity_x == 0 and self.snake_head.velocity_y == -STEP_SIZE
 
     def _going_up(self):
         """
         Check if the snake is going up
         """
-        return self.snake.velocity_x == 0 and self.snake.velocity_y == STEP_SIZE
+        return self.snake_head.velocity_x == 0 and self.snake_head.velocity_y == STEP_SIZE
 
     def _going_left(self):
         """
         Check if the snake is going left
         """
-        return self.snake.velocity_x == -STEP_SIZE and self.snake.velocity_y == 0
+        return self.snake_head.velocity_x == -STEP_SIZE and self.snake_head.velocity_y == 0
 
     def _going_right(self):
         """
         Check if the snake is going right
         """
-        return self.snake.velocity_x == STEP_SIZE and self.snake.velocity_y == 0
+        return self.snake_head.velocity_x == STEP_SIZE and self.snake_head.velocity_y == 0
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
         """
             Check if there is an arrow input
         """
         if keycode[1] == 'up' and not self._going_down():
-            self.snake.velocity = (0, STEP_SIZE)
+            self.snake_head.velocity = (0, STEP_SIZE)
         elif keycode[1] == 'down' and not self._going_up():
-            self.snake.velocity = (0, -STEP_SIZE)
+            self.snake_head.velocity = (0, -STEP_SIZE)
         elif keycode[1] == 'left' and not self._going_right():
-            self.snake.velocity = (-STEP_SIZE, 0)
+            self.snake_head.velocity = (-STEP_SIZE, 0)
         elif keycode[1] == 'right' and not self._going_left():
-            self.snake.velocity = (STEP_SIZE, 0)
+            self.snake_head.velocity = (STEP_SIZE, 0)
         return True
 
     def _keyboard_closed(self):

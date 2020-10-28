@@ -1,11 +1,16 @@
 #:kivy 1.11
 
-<Body>:
+<SnakeHead>:
     canvas:
         Rectangle:
             pos: self.pos
             size: self.size
 
+<SnakeTail>:
+    canvas:
+        Rectangle:
+            pos: self.pos
+            size: self.size
 <Fruit>
     canvas:
         Rectangle:
@@ -13,14 +18,19 @@
             size: self.size
             source: './images/apple.png'
 
-
 <SnakeGame>:
-    snake: snake_id
+    snake_head: head_id
     fruit: fruit_id
 
-    Body:
-        id : snake_id
+    SnakeHead:
+        id : head_id
+        size: root.player_size,root.player_size
     Fruit:
         id : fruit_id
-
+        size: root.player_size,root.player_size
+    Label:
+        font_size: 50
+        center_x: root.width / 2
+        top: root.top - 50
+        text: str(root.score)
 
