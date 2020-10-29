@@ -124,7 +124,7 @@ class SnakeGame(Widget):
             self.fruit.spawn()
             self.tail.append(
                 SnakeTail(
-                    pos=(self.snake_head.pos[0] - len(self.tail) * STEP_SIZE, self.snake_head.pos[1]),
+                    pos=self.tail[-1].pos,
                     size=self.snake_head.size
                 )
             )
