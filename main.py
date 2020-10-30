@@ -53,6 +53,14 @@ class SnakeHead(Widget):
         if (self.x < 0) or (self.x + STEP_SIZE > WINDOW_WIDTH):
             self.x = (int(WINDOW_WIDTH / STEP_SIZE) * STEP_SIZE) - STEP_SIZE if (self.x < 0) else 0
 
+    def is_touching(self,pos):
+        """
+        Check if snakehead is touching a pos
+        :param pos: The pos we want to check is snakehead is touching it
+        :return: True if snakehead is touching it
+        """
+        return pos[0] <= self.pos[0] < pos[0]+STEP_SIZE and pos[1] <= self.pos[1] <= pos[1]+STEP_SIZE
+
 
 class Fruit(Widget):
     """
@@ -109,17 +117,11 @@ class SnakeGame(Widget):
         self.add_widget(self.tail[-1])
         self.fruit.spawn()
 
-    def _is_fruit_touched(self):
-        """
-        :return: true if the snake touch the fruit
-        """
-        return self.snake_head.x == self.fruit.x and self.snake_head.y == self.fruit.y
-
     def on_touch_fruit(self):
         """
         The snake get the point if it touch the fruit. The fruit respawn
         """
-        if self._is_fruit_touched():
+        if self.snake_head.is_touching(self.fruit.pos):
             self.score += 1
             self.fruit.spawn()
             self.tail.append(
@@ -135,7 +137,8 @@ class SnakeGame(Widget):
         Move the snake and check if it touch the fruit
         """
         for i in range(1, len(self.tail)):
-            self.tail[-i].move(new_pos=(self.tail[-(i + 1)].pos))
+            print(self.snake_head.is_touching(self.tail[-i].pos))
+            self.tail[-i].move(new_pos=self.tail[-(i + 1)].pos)
         self.tail[0].move(new_pos=self.snake_head.pos)
         self.snake_head.move()
         self.on_touch_fruit()

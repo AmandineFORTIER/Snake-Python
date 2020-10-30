@@ -22,7 +22,7 @@ Kivy 1.11.1
 With the IDE or :
 `python3 main.py`
 
-Don't forget to install the framework: `https://kivy.org/doc/stable/gettingstarted/installation.html`
+Don't forget to install the library: `https://kivy.org/doc/stable/gettingstarted/installation.html`
 
 ## Credits
 Apple icon <img src="./images/apple.png" alt="apple icon" width="3%"> made by Vectors Market from flaticon
