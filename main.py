@@ -24,14 +24,21 @@ def random_pos_on_grid():
 
 
 class SnakeTail(Widget):
+    """
+    Tail of the snake
+    """
 
     def move(self, new_pos):
+        """
+        Move the snake tail
+        :param new_pos: New pos of the tail
+        """
         self.pos = new_pos
 
 
 class SnakeHead(Widget):
     """
-    A cell of the snake body
+    The snake head
     """
     velocity_x = NumericProperty(0)
     velocity_y = NumericProperty(0)
@@ -39,42 +46,40 @@ class SnakeHead(Widget):
 
     def move(self):
         """
-        Move a snake cell
+        Move the snake head
         """
         self.pos = Vector(*self.velocity) + self.pos
         self._on_touch_wall()
 
     def _on_touch_wall(self):
         """
-        Check if the snake cell touch a wall
+        Check if the snake head touch a wall
         """
         if (self.y < 0) or (self.y + STEP_SIZE > WINDOW_HEIGHT):
             self.y = (int(WINDOW_HEIGHT / STEP_SIZE) * STEP_SIZE) - STEP_SIZE if (self.y < 0) else 0
         if (self.x < 0) or (self.x + STEP_SIZE > WINDOW_WIDTH):
             self.x = (int(WINDOW_WIDTH / STEP_SIZE) * STEP_SIZE) - STEP_SIZE if (self.x < 0) else 0
 
-    def is_touching(self,pos):
+    def is_touching(self, pos):
         """
-        Check if snakehead is touching a pos
-        :param pos: The pos we want to check is snakehead is touching it
-        :return: True if snakehead is touching it
+        Check if snake head is touching a pos
+        :param pos: The pos we want to check is snake head is touching it
+        :return: True if snake head is touching it
         """
-        return pos[0] <= self.pos[0] < pos[0]+STEP_SIZE and pos[1] <= self.pos[1] <= pos[1]+STEP_SIZE
+        return pos[0] <= self.pos[0] < pos[0] + STEP_SIZE and pos[1] <= self.pos[1] < pos[1] + STEP_SIZE
 
 
 class Fruit(Widget):
     """
-    the fruit
+    The fruit
     """
-    x = NumericProperty(0)
-    y = NumericProperty(0)
-    pos = ReferenceListProperty(x, y)
 
-    def spawn(self):
+    def move(self, pos):
         """
-        Spawn a fruit on the map
+        Move a fruit to a new position
+        :param pos: The new pos of the fruit
         """
-        self.pos = random_pos_on_grid()
+        self.pos = pos
 
 
 class SnakeGame(Widget):
@@ -85,13 +90,13 @@ class SnakeGame(Widget):
     fruit = ObjectProperty(None)
     score = NumericProperty(0)
     player_size = NumericProperty(STEP_SIZE)
+    tail = []
 
     def __init__(self, **kwargs):
         super(SnakeGame, self).__init__(**kwargs)
         Window.size = (WINDOW_WIDTH, WINDOW_HEIGHT)
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
-        self.tail = []
 
     def start(self, vel=(STEP_SIZE, 0)):
         """
@@ -100,48 +105,39 @@ class SnakeGame(Widget):
         """
         self.snake_head.pos = random_pos_on_grid()
         self.snake_head.velocity = vel
+        self.add_tail((self.snake_head.pos[0] - STEP_SIZE, self.snake_head.pos[1]))
+        self.add_tail((self.snake_head.pos[0] - (2 * STEP_SIZE), self.snake_head.pos[1]))
+        self.fruit.move(random_pos_on_grid())
+
+    def add_tail(self, pos):
         self.tail.append(
             SnakeTail(
-                pos=(self.snake_head.pos[0] - STEP_SIZE, self.snake_head.pos[1]),
+                pos=pos,
                 size=self.snake_head.size
             )
         )
         self.add_widget(self.tail[-1])
-
-        self.tail.append(
-            SnakeTail(
-                pos=(self.snake_head.pos[0] - 2 * STEP_SIZE, self.snake_head.pos[1]),
-                size=self.snake_head.size
-            )
-        )
-        self.add_widget(self.tail[-1])
-        self.fruit.spawn()
-
-    def on_touch_fruit(self):
-        """
-        The snake get the point if it touch the fruit. The fruit respawn
-        """
-        if self.snake_head.is_touching(self.fruit.pos):
-            self.score += 1
-            self.fruit.spawn()
-            self.tail.append(
-                SnakeTail(
-                    pos=self.tail[-1].pos,
-                    size=self.snake_head.size
-                )
-            )
-            self.add_widget(self.tail[-1])
 
     def update(self, dt):
         """
         Move the snake and check if it touch the fruit
         """
         for i in range(1, len(self.tail)):
-            print(self.snake_head.is_touching(self.tail[-i].pos))
+            if self.snake_head.is_touching(self.tail[i].pos):
+                print("TOUCH ",i)
             self.tail[-i].move(new_pos=self.tail[-(i + 1)].pos)
         self.tail[0].move(new_pos=self.snake_head.pos)
         self.snake_head.move()
         self.on_touch_fruit()
+
+    def on_touch_fruit(self):
+        """
+        The snake get the point if it touch the fruit. The fruit respawn and the snake tail growth.
+        """
+        if self.snake_head.is_touching(self.fruit.pos):
+            self.score += 1
+            self.fruit.move(random_pos_on_grid())
+            self.add_tail(self.tail[-1].pos)
 
     def _going_down(self):
         """
@@ -193,7 +189,7 @@ class SnakeApp(App):
     def build(self):
         game = SnakeGame()
         game.start()
-        Clock.schedule_interval(game.update, 5.0 / 60.0)
+        Clock.schedule_interval(game.update, 20.0 / 60.0)
         return game
 
 
