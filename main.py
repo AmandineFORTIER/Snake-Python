@@ -1,5 +1,6 @@
 from random import randint
 
+from kivy.animation import Animation
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -131,7 +132,11 @@ class SnakeGame(Widget):
             for i in range(1, len(self.tail)):
                 if self.snake_head.is_touching(self.tail[i].pos):
                     print("TOUCH ", i)
-                    self.is_game_over=True
+                    self.is_game_over = True
+                    anim = Animation(opacity=0, duration=0.2)
+                    anim += Animation(opacity=1, duration=0.2)
+                    anim.repeat = True
+                    anim.start(self)
                     break
                 self.tail[-i].move(new_pos=self.tail[-(i + 1)].pos)
             if not self.is_game_over:
@@ -184,7 +189,6 @@ class SnakeGame(Widget):
             self.snake_head.velocity = (-STEP_SIZE, 0)
         elif keycode[1] == 'right' and not self._going_left():
             self.snake_head.velocity = (STEP_SIZE, 0)
-        return True
 
     def _keyboard_closed(self):
         """
