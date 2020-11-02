@@ -4,7 +4,7 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.properties import (
-    NumericProperty, ReferenceListProperty, ObjectProperty
+    NumericProperty, ReferenceListProperty, ObjectProperty, BooleanProperty
 )
 from kivy.uix.widget import Widget
 from kivy.vector import Vector
@@ -91,6 +91,7 @@ class SnakeGame(Widget):
     score = NumericProperty(0)
     player_size = NumericProperty(STEP_SIZE)
     tail = []
+    is_game_over = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(SnakeGame, self).__init__(**kwargs)
@@ -122,13 +123,21 @@ class SnakeGame(Widget):
         """
         Move the snake and check if it touch the fruit
         """
-        for i in range(1, len(self.tail)):
-            if self.snake_head.is_touching(self.tail[i].pos):
-                print("TOUCH ",i)
-            self.tail[-i].move(new_pos=self.tail[-(i + 1)].pos)
-        self.tail[0].move(new_pos=self.snake_head.pos)
-        self.snake_head.move()
-        self.on_touch_fruit()
+        if self.is_game_over:
+            self.snake_head.velocity = (0, 0)
+            for c in self.tail:
+                c.velocity = (0, 0)
+        else:
+            for i in range(1, len(self.tail)):
+                if self.snake_head.is_touching(self.tail[i].pos):
+                    print("TOUCH ", i)
+                    self.is_game_over=True
+                    break
+                self.tail[-i].move(new_pos=self.tail[-(i + 1)].pos)
+            if not self.is_game_over:
+                self.tail[0].move(new_pos=self.snake_head.pos)
+                self.snake_head.move()
+                self.on_touch_fruit()
 
     def on_touch_fruit(self):
         """
@@ -189,7 +198,7 @@ class SnakeApp(App):
     def build(self):
         game = SnakeGame()
         game.start()
-        Clock.schedule_interval(game.update, 20.0 / 60.0)
+        Clock.schedule_interval(game.update, 10.0 / 60.0)
         return game
 
 
