@@ -5,7 +5,7 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.properties import (
-    NumericProperty, ReferenceListProperty, ObjectProperty, BooleanProperty
+    NumericProperty, ReferenceListProperty, ObjectProperty, BooleanProperty, StringProperty
 )
 from kivy.uix.widget import Widget
 from kivy.vector import Vector
@@ -90,8 +90,9 @@ class SnakeGame(Widget):
     snake_head = ObjectProperty(None)
     fruit = ObjectProperty(None)
     score = NumericProperty(0)
-    player_size = NumericProperty(STEP_SIZE)
     tail = []
+    player_size = NumericProperty(STEP_SIZE)
+    position_to_go = StringProperty("right")
     is_game_over = BooleanProperty(False)
 
     def __init__(self, **kwargs):
@@ -99,19 +100,20 @@ class SnakeGame(Widget):
         Window.size = (WINDOW_WIDTH, WINDOW_HEIGHT)
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
+        self.is_pressed = False
 
-    def start(self, vel=(STEP_SIZE, 0)):
+    def start(self):
         """
         Start the game.
         :param vel: default velocity
         """
         self.snake_head.pos = random_pos_on_grid()
-        self.snake_head.velocity = vel
-        self.add_tail((self.snake_head.pos[0] - STEP_SIZE, self.snake_head.pos[1]))
-        self.add_tail((self.snake_head.pos[0] - (2 * STEP_SIZE), self.snake_head.pos[1]))
+        self.snake_head.velocity = (STEP_SIZE, 0)
+        self._add_tail((self.snake_head.pos[0] - STEP_SIZE, self.snake_head.pos[1]))
+        self._add_tail((self.snake_head.pos[0] - (2 * STEP_SIZE), self.snake_head.pos[1]))
         self.fruit.move(random_pos_on_grid())
 
-    def add_tail(self, pos):
+    def _add_tail(self, pos):
         self.tail.append(
             SnakeTail(
                 pos=pos,
@@ -129,6 +131,15 @@ class SnakeGame(Widget):
             for c in self.tail:
                 c.velocity = (0, 0)
         else:
+            if self.position_to_go == 'up':
+                self.snake_head.velocity = (0, STEP_SIZE)
+            elif self.position_to_go == 'down':
+                self.snake_head.velocity = (0, -STEP_SIZE)
+            elif self.position_to_go == 'left':
+                self.snake_head.velocity = (-STEP_SIZE, 0)
+            elif self.position_to_go == 'right':
+                self.snake_head.velocity = (STEP_SIZE, 0)
+
             for i in range(1, len(self.tail)):
                 if self.snake_head.is_touching(self.tail[i].pos):
                     print("TOUCH ", i)
@@ -151,7 +162,7 @@ class SnakeGame(Widget):
         if self.snake_head.is_touching(self.fruit.pos):
             self.score += 1
             self.fruit.move(random_pos_on_grid())
-            self.add_tail(self.tail[-1].pos)
+            self._add_tail(self.tail[-1].pos)
 
     def _going_down(self):
         """
@@ -182,13 +193,18 @@ class SnakeGame(Widget):
             Check if there is an arrow input
         """
         if keycode[1] == 'up' and not self._going_down():
-            self.snake_head.velocity = (0, STEP_SIZE)
+            self.position_to_go = "up"
+            return True
         elif keycode[1] == 'down' and not self._going_up():
-            self.snake_head.velocity = (0, -STEP_SIZE)
+            self.position_to_go = "down"
+            return True
         elif keycode[1] == 'left' and not self._going_right():
-            self.snake_head.velocity = (-STEP_SIZE, 0)
+            self.position_to_go = "left"
+            return True
         elif keycode[1] == 'right' and not self._going_left():
-            self.snake_head.velocity = (STEP_SIZE, 0)
+            self.position_to_go = "right"
+            return True
+        return False
 
     def _keyboard_closed(self):
         """
