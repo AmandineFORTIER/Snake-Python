@@ -1,16 +1,11 @@
 #:kivy 1.11
 
-<SnakeHead>:
+<SnakeCell>:
     canvas:
         Rectangle:
             pos: self.pos
             size: self.size
 
-<SnakeTail>:
-    canvas:
-        Rectangle:
-            pos: self.pos
-            size: self.size
 <Fruit>
     canvas:
         Rectangle:
@@ -22,7 +17,7 @@
     snake_head: head_id
     fruit: fruit_id
 
-    SnakeHead:
+    SnakeCell:
         id : head_id
         size: self.size
     Fruit:
