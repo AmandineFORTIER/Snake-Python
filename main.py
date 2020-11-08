@@ -86,6 +86,7 @@ class SnakeGame(Widget):
     snake_head = ObjectProperty(None)
     fruit = ObjectProperty(None)
     score = NumericProperty(0)
+    label_game_over = ObjectProperty(None)
     tail = []
     position_to_go = StringProperty("right")
     is_game_over = BooleanProperty(False)
@@ -102,7 +103,7 @@ class SnakeGame(Widget):
         Window.size = (width, height)
         self.step_size = step_size
         self._init_keyboard()
-        self._set_objects_size()
+        self._set_attr_values()
 
     def _init_keyboard(self):
         """
@@ -130,12 +131,13 @@ class SnakeGame(Widget):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
         self._keyboard = None
 
-    def _set_objects_size(self):
+    def _set_attr_values(self):
         """
-        Set the object size
+        Set the attributes value
         """
         self.snake_head.size = (self.step_size, self.step_size)
         self.fruit.size = self.snake_head.size
+        self.score = 0
 
     def start(self):
         """
@@ -226,6 +228,7 @@ class SnakeGame(Widget):
             cell.go_to("stop", self.step_size)
         self._flash_screen(0.5)
         self.is_game_over = True
+        self.label_game_over.text = "Game Over"
 
     def _flash_screen(self, time):
         """

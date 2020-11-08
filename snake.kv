@@ -16,6 +16,7 @@
 <SnakeGame>:
     snake_head: head_id
     fruit: fruit_id
+    label_game_over: game_over_id
 
     SnakeCell:
         id : head_id
@@ -28,4 +29,9 @@
         center_x: root.width / 2
         top: root.top - 50
         text: str(root.score)
+    Label:
+        id: game_over_id
+        font_size: 70
+        center_x: root.width/2
+        center_y: root.height/2
 
