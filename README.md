@@ -4,8 +4,8 @@
 ## Description
 A basic snake game. I made it to use Kivy.
 
-<img src="./images/demo.png" alt="Snake Game" style="float: left; margin-right: 10px" width="40%"/>
-<img src="./images/demo.gif" alt="Snake Game GIF" style="float: left; margin-right: 10px" width="40%"/>
+<img src="./images/demo.png" alt="Snake Game" style="float: left; margin-right: 10px" width="30%"/>
+<img src="./images/demo.gif" alt="Snake Game GIF" style="float: left; margin-right: 10px" width="30%"/>
 
 
 ## IDE, language and libraries
