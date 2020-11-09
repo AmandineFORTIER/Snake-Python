@@ -6,11 +6,13 @@ A basic snake game. I made it to use Kivy.
 
 <img src="./images/demo.png" 
     alt="Snake Game" 
-    style="float: right; margin-right: 10px" 
+    style="padding: 10px; float: right" 
     width="32%"/> <img src="./images/demo.gif" 
-    alt="Snake Game GIF" style="float: left; margin-right: 10px" 
+    alt="Snake Game GIF" 
+    style="padding: 10px;float: left" 
     width="32%"/><img src="./images/game_over.gif" 
-    alt="Game Over GIF" style="float: left; margin-right: 10px" 
+    alt="Game Over GIF" 
+    style="padding: 10px;float: left" 
     width="32%"/>
 
 
