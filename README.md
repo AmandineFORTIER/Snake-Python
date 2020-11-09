@@ -4,8 +4,9 @@
 ## Description
 A basic snake game. I made it to use Kivy.
 
+<img src="./images/demo.png" alt="Snake Game" >
+<img src="./images/demo.gif" alt="Snake Game GIF" >
 
-Screenshots will follow
 
 ## IDE, language and libraries
 
