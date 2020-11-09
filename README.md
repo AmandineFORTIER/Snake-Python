@@ -22,7 +22,7 @@ A basic snake game. I made it to use Kivy.
 PyCharm 2020.2.3 (Community Edition)
 
 ### Language
-Python 3.8.6
+Python 3.7.9
 
 ### Library
 Kivy 1.11.1
