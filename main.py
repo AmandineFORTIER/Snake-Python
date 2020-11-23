@@ -10,9 +10,17 @@ from kivy.properties import (
 from kivy.uix.widget import Widget
 from kivy.vector import Vector
 
+from ai import Dqn
+
 STEP_SIZE = 20
 WINDOW_HEIGHT = 600
 WINDOW_WIDTH = 600
+
+brain = Dqn(5, 3, 0.9)
+action2rotation = [0, 90, -90]
+last_reward = 0
+scores = []
+last_distance = 0
 
 
 def random_pos_on_grid(step_size, width, height):
@@ -28,19 +36,50 @@ def random_pos_on_grid(step_size, width, height):
         randint(0, (int((height - step_size) / step_size))) * step_size]
 
 
+class Ball1(Widget):
+    pass
+
+
+class Ball2(Widget):
+    pass
+
+
+class Ball3(Widget):
+    pass
+
+
 class SnakeCell(Widget):
     """
     A snake cell
     """
+    angle = NumericProperty(0)
+    rotation = NumericProperty(0)
     velocity_x = NumericProperty(0)
     velocity_y = NumericProperty(0)
     velocity = ReferenceListProperty(velocity_x, velocity_y)
+    sensor1_x = NumericProperty(0)
+    sensor1_y = NumericProperty(0)
+    sensor1 = ReferenceListProperty(sensor1_x, sensor1_y)
+    sensor2_x = NumericProperty(0)
+    sensor2_y = NumericProperty(0)
+    sensor2 = ReferenceListProperty(sensor2_x, sensor2_y)
+    sensor3_x = NumericProperty(0)
+    sensor3_y = NumericProperty(0)
+    sensor3 = ReferenceListProperty(sensor3_x, sensor3_y)
+    signal1 = NumericProperty(0)
+    signal2 = NumericProperty(0)
+    signal3 = NumericProperty(0)
 
     def move(self):
         """
         Move the snake cell
         """
         self.pos = Vector(*self.velocity) + self.pos
+        self.angle = self.angle + self.rotation
+        print(self.angle)
+        self.sensor1 = Vector(30, 0).rotate(self.angle) + self.pos
+        self.sensor2 = Vector(30, 0).rotate((self.angle - 90)%360) + self.pos
+        self.sensor3 = Vector(30, 0).rotate((self.angle + 90) % 360) + self.pos
 
     def move_pos(self, pos):
         """
@@ -65,6 +104,36 @@ class SnakeCell(Widget):
         elif direction == "stop":
             self.velocity = (0, 0)
 
+    def is_going_to(self, direction, step_size):
+        #print(self.velocity)
+        #print(direction)
+        return (direction == "right" and self.velocity == [step_size, 0]) or \
+               (direction == "left" and self.velocity == [-step_size, 0]) or \
+               (direction == "up" and self.velocity == [0, step_size]) or \
+               (direction == "down" and self.velocity == [0, -step_size]) or \
+               (direction == "stop" and self.velocity == [0, 0])
+
+    def go_to_rotation(self, rotation, step_size):
+        #print(rotation)
+        if rotation == -90:
+            if self.is_going_to("up", step_size):
+                self.go_to("right", step_size)
+            elif self.is_going_to("right", step_size):
+                self.go_to("down", step_size)
+            elif self.is_going_to("down", step_size):
+                self.go_to("left", step_size)
+            elif self.is_going_to("left", step_size):
+                self.go_to("up", step_size)
+        elif rotation == 90:
+            if self.is_going_to("up", step_size):
+                self.go_to("left", step_size)
+            elif self.is_going_to("left", step_size):
+                self.go_to("down", step_size)
+            elif self.is_going_to("down", step_size):
+                self.go_to("right", step_size)
+            elif self.is_going_to("right", step_size):
+                self.go_to("up", step_size)
+
 
 class Fruit(Widget):
     """
@@ -88,8 +157,11 @@ class SnakeGame(Widget):
     score = NumericProperty(0)
     label_game_over = ObjectProperty(None)
     tail = []
-    position_to_go = StringProperty("right")
+    position_to_go = NumericProperty(0)  # StringProperty("right")
     is_game_over = BooleanProperty(False)
+    ball1 = ObjectProperty(None)
+    ball2 = ObjectProperty(None)
+    ball3 = ObjectProperty(None)
 
     def __init__(self, step_size, width, height, **kwargs):
         """
@@ -104,6 +176,7 @@ class SnakeGame(Widget):
         self.step_size = step_size
         self._init_keyboard()
         self._set_attr_values()
+        self.snake_head.go_to("right", self.step_size)
 
     def _init_keyboard(self):
         """
@@ -116,13 +189,18 @@ class SnakeGame(Widget):
         """
             Check if there is an arrow input
         """
-        if ((keycode[1] == 'up' and not self._is_going_to("down"))
-                or (keycode[1] == 'down' and not self._is_going_to("up"))
-                or (keycode[1] == 'left' and not self._is_going_to("right"))
-                or (keycode[1] == 'right' and not self._is_going_to("left"))):
-            self.position_to_go = keycode[1]
-            return True
-        return False
+        # if ((keycode[1] == 'up' and not self._is_going_to("down"))
+        #       or (keycode[1] == 'down' and not self._is_going_to("up"))
+        #      or (keycode[1] == 'left' and not self._is_going_to("right"))
+        #     or (keycode[1] == 'right' and not self._is_going_to("left"))):
+        # self.position_to_go = keycode[1]
+        # return True
+        # return False
+        if keycode[1] == 'right':
+            self.position_to_go = -90
+        if keycode[1] == 'left':
+            self.position_to_go = 90
+        return True
 
     def _keyboard_closed(self):
         """
@@ -179,11 +257,25 @@ class SnakeGame(Widget):
         Move the snake and check if it touch the fruit or if it's the end of the game
         """
         if not self.is_game_over:
-            self.snake_head.go_to(self.position_to_go, self.step_size)
+            xx = self.fruit.x - self.snake_head.x
+            yy = self.fruit.y - self.snake_head.y
+            orientation = Vector(*self.snake_head.velocity).angle((xx, yy)) / 180.
+            last_signal = [self.snake_head.signal1, self.snake_head.signal2, self.snake_head.signal3, orientation,
+                           -orientation]
+            action = brain.update(last_reward, last_signal)
+            scores.append(brain.score())
+            # rotation = action2rotation[action]
+            rotation = self.position_to_go
+            self.position_to_go = 0
+            # self.snake_head.go_to(self.position_to_go, self.step_size)
+            self.snake_head.go_to_rotation(rotation, self.step_size)
             self._on_touch_wall()
-            self._move_snake()
+            self._move_snake(rotation)
+            self.ball1.pos = self.snake_head.sensor1
+            self.ball2.pos = self.snake_head.sensor2
+            self.ball3.pos = self.snake_head.sensor3
             if not self.is_game_over:
-                if self._snake_head_is_touching(self.fruit):
+                if self._is_touching(self.snake_head.pos, self.fruit.pos):
                     self._on_touch_fruit()
 
     def _on_touch_wall(self):
@@ -197,22 +289,29 @@ class SnakeGame(Widget):
             self.snake_head.x = (int(Window.width / self.step_size) * self.step_size) - self.step_size \
                 if (self.snake_head.x < 0) else 0
 
-    def _move_snake(self):
+    def _move_snake(self, rotation):
         for i in range(1, len(self.tail)):
-            if self._snake_head_is_touching(self.tail[i]):
+            if self._is_touching(self.snake_head.pos, self.tail[i].pos):
                 self.game_over()
             self.tail[-i].move_pos(self.tail[-(i + 1)].pos)
         self.tail[0].move_pos(self.snake_head.pos)
+        self.snake_head.rotation = rotation
         self.snake_head.move()
 
-    def _snake_head_is_touching(self, obj):
+        for cell in self.tail:
+            self.snake_head.signal1 = int(self._is_touching(self.snake_head.sensor1, cell.pos))
+            self.snake_head.signal2 = int(self._is_touching(self.snake_head.sensor2, cell.pos))
+            self.snake_head.signal3 = int(self._is_touching(self.snake_head.sensor3, cell.pos))
+
+    def _is_touching(self, pos1, pos2):
         """
-        Check if snake head is touching an object
-        :param obj: the object we want to check is snake head is touching it
-        :return: True if snake head is touching it
+        Check if position1 is touching position2
+        :param pos1: the position we want to check if it touch position2
+        :param pos2: the position we want to check if position1 is touching it
+        :return: True if position1 is touching position2
         """
-        return obj.pos[0] <= self.snake_head.pos[0] < obj.pos[0] + self.step_size and \
-               obj.pos[1] <= self.snake_head.pos[1] < obj.pos[1] + self.step_size
+        return pos2[0] <= pos1[0] < pos2[0] + self.step_size and \
+               pos2[1] <= pos1[1] < pos2[1] + self.step_size
 
     def _on_touch_fruit(self):
         """

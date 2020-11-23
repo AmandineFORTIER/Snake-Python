@@ -6,17 +6,46 @@
             pos: self.pos
             size: self.size
 
-<Fruit>
+<Fruit>:
     canvas:
         Rectangle:
             pos: self.pos
             size: self.size
             source: './images/apple.png'
 
+<Ball1>:
+    size: 10,10
+    canvas:
+        Color:
+            rgba: 1,0,0,1
+        Ellipse:
+            pos: self.pos
+            size: self.size
+<Ball2>:
+    size: 10,10
+    canvas:
+        Color:
+            rgba: 0,1,1,1
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
+<Ball3>:
+    size: 10,10
+    canvas:
+        Color:
+            rgba: 1,1,0,1
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
 <SnakeGame>:
     snake_head: head_id
     fruit: fruit_id
     label_game_over: game_over_id
+    ball1: game_ball1
+    ball2: game_ball2
+    ball3: game_ball3
 
     SnakeCell:
         id : head_id
@@ -34,4 +63,12 @@
         font_size: 70
         center_x: root.width/2
         center_y: root.height/2
-
+    Ball1:
+        id: game_ball1
+        center: self.parent.center
+    Ball2:
+        id: game_ball2
+        center: self.parent.center
+    Ball3:
+        id: game_ball3
+        center: self.parent.center
