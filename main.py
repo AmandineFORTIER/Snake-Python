@@ -10,6 +10,8 @@ from kivy.properties import (
 from kivy.uix.widget import Widget
 from kivy.vector import Vector
 
+import numpy as np
+
 from ai import Dqn
 
 STEP_SIZE = 20
@@ -18,9 +20,7 @@ WINDOW_WIDTH = 600
 
 brain = Dqn(5, 3, 0.9)
 action2rotation = [0, 90, -90]
-last_reward = 0
 scores = []
-last_distance = 0
 
 
 def random_pos_on_grid(step_size, width, height):
@@ -76,9 +76,9 @@ class SnakeCell(Widget):
         """
         self.pos = Vector(*self.velocity) + self.pos
         self.angle = self.angle + self.rotation
-        print(self.angle)
+        #print(self.angle)
         self.sensor1 = Vector(30, 0).rotate(self.angle) + self.pos
-        self.sensor2 = Vector(30, 0).rotate((self.angle - 90)%360) + self.pos
+        self.sensor2 = Vector(30, 0).rotate((self.angle - 90) % 360) + self.pos
         self.sensor3 = Vector(30, 0).rotate((self.angle + 90) % 360) + self.pos
 
     def move_pos(self, pos):
@@ -105,8 +105,8 @@ class SnakeCell(Widget):
             self.velocity = (0, 0)
 
     def is_going_to(self, direction, step_size):
-        #print(self.velocity)
-        #print(direction)
+        # print(self.velocity)
+        # print(direction)
         return (direction == "right" and self.velocity == [step_size, 0]) or \
                (direction == "left" and self.velocity == [-step_size, 0]) or \
                (direction == "up" and self.velocity == [0, step_size]) or \
@@ -114,7 +114,7 @@ class SnakeCell(Widget):
                (direction == "stop" and self.velocity == [0, 0])
 
     def go_to_rotation(self, rotation, step_size):
-        #print(rotation)
+        # print(rotation)
         if rotation == -90:
             if self.is_going_to("up", step_size):
                 self.go_to("right", step_size)
@@ -162,6 +162,9 @@ class SnakeGame(Widget):
     ball1 = ObjectProperty(None)
     ball2 = ObjectProperty(None)
     ball3 = ObjectProperty(None)
+    last_distance = NumericProperty(0)
+    last_reward = NumericProperty(0)
+    distance = NumericProperty(0)
 
     def __init__(self, step_size, width, height, **kwargs):
         """
@@ -262,21 +265,44 @@ class SnakeGame(Widget):
             orientation = Vector(*self.snake_head.velocity).angle((xx, yy)) / 180.
             last_signal = [self.snake_head.signal1, self.snake_head.signal2, self.snake_head.signal3, orientation,
                            -orientation]
-            action = brain.update(last_reward, last_signal)
+            action = brain.update(self.last_reward, last_signal)
             scores.append(brain.score())
-            # rotation = action2rotation[action]
-            rotation = self.position_to_go
-            self.position_to_go = 0
+            rotation = action2rotation[action]
+            # rotation = self.position_to_go
+            # self.position_to_go = 0
             # self.snake_head.go_to(self.position_to_go, self.step_size)
             self.snake_head.go_to_rotation(rotation, self.step_size)
             self._on_touch_wall()
             self._move_snake(rotation)
+            self.distance = int(np.sqrt((self.snake_head.x - self.fruit.x) ** 2 + (self.snake_head.y - self.fruit.y) ** 2))
             self.ball1.pos = self.snake_head.sensor1
             self.ball2.pos = self.snake_head.sensor2
             self.ball3.pos = self.snake_head.sensor3
             if not self.is_game_over:
                 if self._is_touching(self.snake_head.pos, self.fruit.pos):
                     self._on_touch_fruit()
+
+            reward_closer = 0.1
+            reward_go_away = -0.2
+            reward_on_obj = 2
+            reward_tail = -2
+
+            if self.distance == 0:
+                self.last_reward = reward_on_obj
+                print("EAT")
+
+            elif self.snake_head.signal1 or self.snake_head.signal2 or self.snake_head.signal3:
+                self.last_reward = reward_tail
+                print("TAIL")
+
+            elif self.distance < self.last_distance:
+                self.last_reward = reward_closer
+                print("CLOSER")
+
+            elif self.distance >= self.last_distance:
+                self.last_reward = reward_go_away
+                print("AWAY")
+            self.last_distance = self.distance
 
     def _on_touch_wall(self):
         """
